@@ -57,19 +57,18 @@ VALUES
     ('Company KK', 'Healthcare', 150.2, 3400, 0, 16, 8, 5.3);
 
 
---Group the data in a new way using a CASE statement.
---Use a HAVING clause to determine something interesting about the data per category.
---Use logical operators like AND or OR to filter the data in an interesting way.
---Use an aggregate function like AVG, SUM, COUNT, MAX, and/or MIN to return summary statistics about the data.
 
+--Select all in fortune_companies
 SELECT *
 FROM fortune_companies;
 
+--Determine which companies gave their employees either 25+ days of PTO or 12+ days of maternity leave.
 SELECT * 
 FROM fortune_companies
 WHERE paid_time_off_days>= 25
 OR maternity_leave_weeks >= 12;
 
+--Assign exiting blurbs to companies having over and under 20 days of PTO and companies with and average of over and under 5 years.
 SELECT *, 
 CASE when paid_time_off_days>= 20 then '20+ Days!'
 WHEN paid_time_off_days <20 then '15+ Days!'
@@ -79,11 +78,13 @@ WHEN avg_employee_tenure <5 then "Stay a while!"
 ELSE NULL END as avg_tenure
 FROM fortune_companies;
 
+--Identify which companies in Technology, Energy, and Manufacturing with 50,000 or more employees.
 SELECT company_name,revenue,employees
 FROM fortune_companies
 WHERE industry = 'Technology' or 'Energy' or 'Manufacturing'
 AND employees >= 50000
 
+--Identify which companies in Technology, Energy, and Manufacturing with 50,000 or more employees in descending order.
 SELECT company_name, industry, revenue, employees
 FROM fortune_companies                                         
 WHERE industry = 'Technology'
@@ -92,6 +93,7 @@ OR industry = 'Manufacturing'
 AND employees >= 50000
 ORDER BY company_name desc
 
+--Identify the average revenue and employees when there are in each industry when there are more than 4 companies in each industry
 SELECT industry, 
 avg(revenue) as 'average_rev',
 avg(employees) as 'average_emp'
@@ -99,6 +101,7 @@ from fortune_companies
 GROUP BY industry
 HAVING COUNT(industry) >4
 
+--Identify industries have an average revenue of at least $200 Billion.
 SELECT industry, ROUND(AVG(revenue),1) as avg_revenue_billions
 FROM fortune_companies
 GROUP BY industry
