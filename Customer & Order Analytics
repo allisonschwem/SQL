@@ -1,0 +1,108 @@
+#In this SQL, I'm querying a database with multiple tables in it to quantify statistics about customer and order data. 
+
+
+#How many many unique orders were placed in January? In other words, how many distinct order ids do we have?
+
+SELECT 
+count(Distinct orderID) 
+FROM BIT_DB.JanSales
+where orderID <> 'Order ID' 
+and length(orderid) = 6;
+
+#How many of those orders were for an iPhone?
+
+Select
+orderID
+,count(Product) 
+FROM BIT_DB.JanSales
+where orderID <> 'Order ID' 
+and length(orderid) = 6
+and Product = 'iPhone';
+
+#Select the customer account numbers for all the orders that were placed in February.
+
+Select
+distinct acctnum
+From BIT_DB.customers cust
+inner join BIT_DB.FebSales feb
+on feb.orderid = cust.order_id
+where orderID <> 'Order ID' 
+and length(orderid) = 6;
+
+#Which product was the cheapest one sold in January, and what was the price?
+
+Select 
+Product
+,price
+From BIT_DB.JanSales
+Where Product <> 'Product'
+and length(Product) >1
+group by Product
+order by price asc
+Limit 1;
+
+--OR
+
+Select distinct Product, price
+From BIT_DB.JanSales
+Where price in (SELECT min(price) From BIT_DB.JanSales);
+
+--OR in the case where there may be more than 1 product at the cheapest price:
+
+Select 
+Product
+,price
+From BIT_DB.JanSales
+Where Product <> 'Product'
+and length(Product) >1
+group by Product
+order by price asc;
+
+#What is the total revenue for each product sold in January?
+
+Select 
+Product
+,sum(price) * count(quantity) as Revenue
+From BIT_DB.JanSales
+Where Product <> 'Product'
+and length(Product) >1
+group by Product
+order by price asc;
+
+--OR to clean up extra decimal digits
+
+Select 
+Product
+,Round(sum(price) * count(quantity),2) as Revenue
+From BIT_DB.JanSales
+Where Product <> 'Product'
+and length(Product) >1
+group by Product
+order by price asc;
+
+#How many customers ordered more than 2 products at a time in February, and what was the average amount spent for those customers?
+
+--For the average spent for each of those customers individually:
+
+Select
+distinct(acctnum) Customer_Account
+,Avg(Price) Average_Spent
+From BIT_DB.customers cust
+join BIT_DB.FebSales feb
+on feb.orderid = cust.order_id
+where feb.quantity>2
+and length(orderid) = 6
+and orderid <> 'Order ID'
+group by acctnum
+
+--For average spent by those customers as a whole:
+
+SELECT
+count(distinct acctnum) Customer_Account,
+avg(quantity*price) Average_Spent
+From BIT_DB.FebSales feb
+Join BIT_DB.customers cust
+on FEB.orderid=cust.order_id
+Where feb.Quantity>2
+and length(orderid) = 6
+and orderid <> 'Order ID';
