@@ -9,6 +9,19 @@ FROM BIT_DB.JanSales
 where orderID <> 'Order ID' 
 and length(orderid) = 6;
 
+--In this circumstance, there was incomplete data in the table where instead of having a 6 digit order id, it would say "Order ID."
+      --In the real world, we would most likely want to pull the incomplete data specifically to fix it and identify weak points in processes.
+            --Other than running a query to specifically pull up these instances, I would consider using a CASE to flag these outliers.
+              CASE 
+              WHEN orderID= 'Order ID' THEN 'Order ID Error'
+              ELSE 'Order Submitted'
+              END;
+--Additionally, my instructions were to specifically only use order ids with 6 digits and consider any more to be incorrect.
+      --In the real world, this may not be the case. A different format for order id could mean any number of things like variation
+        of vendor, a CS corrected/altered order, or a need to expand from 6 to 7 digits to ensure unique order ids in the future.
+          --If I knew there were always a minimum of 6 digits in an order id, I would change the =6 to >=6
+          --Alternatively, I could run a query to isolate order ids over 6 digits using >6 to be reviewed for errors.
+
 #How many of those orders were for an iPhone?
 
 Select
