@@ -1,0 +1,101 @@
+#Calculate the average invoice total for each customer who has made purchases. 
+#Display the customer's full name, Country, and email address and their average invoice amount, sorted from highest to lowest average.
+
+SELECT*FROM customers;
+CustomerID, FirstName, LastName, Country, Email
+SELECT*FROM invoices;
+InvoiceID, CustomerID, Total, BillingCiity
+
+SELECT
+,round(avg(inv.Total),2) AS Average_Total
+,custs.FirstName
+,custs.LastName
+,custs.Country
+,custs.Email
+FROM customers AS custs
+JOIN invoices AS inv
+ON custs.CustomerId = inv.CustomerId
+GROUP BY custs.CustomerID
+
+--OR
+
+WITH customer_averages AS (
+    SELECT 
+        CustomerId,
+        ROUND(AVG(Total), 2) as average_total
+    FROM invoices
+    GROUP BY CustomerId
+)
+SELECT 
+    ca.average_total,
+    c.FirstName,
+    c.LastName,
+    c.Country,
+    c.Email
+FROM customers c
+JOIN customer_averages ca ON c.CustomerId = ca.CustomerId;
+
+#Rank each country accourding to total sales and Identify the top 3 of customers in each market
+
+WITH country_sales AS (
+    -- First get total sales by country and rank countries
+    SELECT 
+        c.Country,
+        ROUND(SUM(i.Total), 2) as total_country_sales,
+        RANK() OVER (ORDER BY SUM(i.Total) DESC) as country_rank
+    FROM customers c
+    JOIN invoices i ON c.CustomerId = i.CustomerId
+    GROUP BY c.Country
+),
+customer_rankings AS (
+    SELECT 
+    c.CustomerId
+    ,c.FirstName
+    ,c.LastName
+    ,c.Country,
+    ,c.Email
+    ,ROUND(SUM(i.Total), 2) as customer_total_sales
+    ,ROW_NUMBER() OVER (PARTITION BY c.Country ORDER BY SUM(i.Total) DESC) as customer_rank_in_country
+    FROM customers c
+    JOIN invoices i ON c.CustomerId = i.CustomerId
+    GROUP BY c.CustomerId, c.FirstName, c.LastName, c.Country, c.Email
+)
+SELECT 
+    cr.Country
+    ,cs.total_country_sales
+    ,cs.country_rank as country_global_rank
+    ,cr.FirstName
+    ,cr.LastName
+    ,cr.Email
+    ,cr.customer_total_sales
+    ,cr.customer_rank_in_country
+FROM customer_rankings cr
+JOIN country_sales cs ON cr.Country = cs.Country
+WHERE cr.customer_rank_in_country <= 5
+ORDER BY 
+    cs.country_rank
+    ,cr.customer_rank_in_country;
+
+#List the top 5 genres by total track count. Display the genre name and the count of tracks.
+
+SELECT count(TrackId) as Total_Tracks
+,g.Name
+FROM tracks t
+join genres g on t.GenreId = g.GenreId
+group BY g.Name
+Order by count(TrackId) desc
+LIMIT 5;
+
+#Find all playlists that contain tracks from more than 3 different genres.
+   
+SELECT 
+    p.Name
+    ,COUNT(DISTINCT t.GenreID) as Genre_Count
+FROM playlists p
+JOIN playlist_track pt ON p.PlaylistID = pt.PlaylistID
+JOIN tracks t ON pt.TrackID = t.TrackID
+JOIN genres g ON t.GenreID = g.GenreID
+GROUP BY p.Name
+ORDER BY COUNT(DISTINCT t.GenreID) desc
+LIMIT 3;
+ 
